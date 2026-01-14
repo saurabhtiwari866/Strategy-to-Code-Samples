@@ -1,0 +1,29 @@
+//@version=5
+indicator("MTF Trend Confirmation Hub", overlay=true)
+
+// --- INPUTS ---
+higher_tf = input.timeframe("60", "Higher Timeframe Analysis")
+ma_len    = input.int(50, "Trend EMA Length")
+
+// --- SECURITY CALLS ---
+// Fetching data from a higher timeframe without repainting issues (gaps=barmerge.gaps_off)
+htf_close = request.security(syminfo.tickerid, higher_tf, close, gaps=barmerge.gaps_off, lookahead=barmerge.lookahead_on)
+htf_ema   = request.security(syminfo.tickerid, higher_tf, ta.ema(close, ma_len), gaps=barmerge.gaps_off, lookahead=barmerge.lookahead_on)
+
+// --- TREND LOGIC ---
+is_bullish = htf_close > htf_ema
+bg_color   = is_bullish ? color.new(color.green, 90) : color.new(color.red, 90)
+
+// --- VISUAL ELEMENTS ---
+// Highlight chart background based on higher timeframe trend
+bgcolor(bg_color, title="HTF Trend Background")
+
+// Plot the HTF EMA on the current chart for reference
+plot(htf_ema, color=color.new(color.orange, 0), linewidth=2, title="Higher TF EMA")
+
+// Add a dynamic label to inform the user which TF is being analyzed
+var label tf_label = label.new(bar_index, high, "Initializing...", style=label.style_label_down, textcolor=color.white)
+if barstate.islast
+    label.set_xy(tf_label, bar_index, high)
+    label.set_text(tf_label, "Higher TF (" + higher_tf + ") Trend: " + (is_bullish ? "BULLISH" : "BEARISH"))
+    label.set_color(tf_label, is_bullish ? color.green : color.red)
