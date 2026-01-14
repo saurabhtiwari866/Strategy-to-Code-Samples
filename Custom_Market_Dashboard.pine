@@ -1,0 +1,38 @@
+//@version=5
+indicator("Professional Market Dashboard", overlay=true, precision=2)
+
+// --- USER INPUTS ---
+// Grouping inputs makes the settings panel look professional
+grp_ui = "Dashboard Visuals"
+show_dash = input.bool(true, "Display Dashboard", group=grp_ui)
+dash_pos  = input.string("Top Right", "Position on Chart", options=["Top Right", "Bottom Right", "Top Left", "Bottom Left"], group=grp_ui)
+
+// --- LOGIC CALCULATIONS ---
+// Standard indicators for display
+rsi_val = ta.rsi(close, 14)
+ema_fast = ta.ema(close, 20)
+ema_slow = ta.ema(close, 50)
+
+// Trend logic based on EMA crossover
+market_trend = close > ema_fast ? "BULLISH" : "BEARISH"
+trend_color  = close > ema_fast ? color.new(color.green, 0) : color.new(color.red, 0)
+
+// --- TABLE ARCHITECTURE ---
+// Using a persistent table to avoid flickering
+var table info_table = table.new(dash_pos == "Top Right" ? position.top_right : position.bottom_right, 2, 3, border_width=1, border_color=color.gray)
+
+if show_dash and barstate.islast
+    // Header Row
+    table.cell(info_table, 0, 0, "Market Metric", bgcolor=color.new(color.gray, 20), text_color=color.white, text_size=size.small)
+    table.cell(info_table, 1, 0, "Current Value", bgcolor=color.new(color.gray, 20), text_color=color.white, text_size=size.small)
+    
+    // RSI Row
+    table.cell(info_table, 0, 1, "RSI (14)", bgcolor=color.new(color.black, 0), text_color=color.white)
+    table.cell(info_table, 1, 1, str.tostring(math.round(rsi_val, 2)), bgcolor=color.new(color.black, 0), text_color=rsi_val > 70 ? color.red : rsi_val < 30 ? color.green : color.white)
+    
+    // Trend Row
+    table.cell(info_table, 0, 2, "Trend Analysis", bgcolor=color.new(color.black, 0), text_color=color.white)
+    table.cell(info_table, 1, 2, market_trend, bgcolor=trend_color, text_color=color.white)
+
+// Plotting lines for visual confirmation
+plot(ema_fast, color=color.new(color.blue, 50), title="Fast EMA")
