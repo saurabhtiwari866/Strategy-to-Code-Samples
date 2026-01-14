@@ -1,4 +1,4 @@
-# 📈 Professional Pine Script Development Portfolio
+#  Professional Pine Script Development Portfolio
 
 Welcome! I specialize in converting manual trading strategies into robust, automated scripts for TradingView. My focus is on clean architecture, zero-repaint logic, and advanced risk management.
 
