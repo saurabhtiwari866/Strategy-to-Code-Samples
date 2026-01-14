@@ -1,0 +1,27 @@
+//@version=5
+strategy("Dynamic Risk Management Engine", overlay=true, initial_capital=10000, currency=currency.USD)
+
+// --- STRATEGY PARAMETERS ---
+risk_percent = input.float(1.0, "Risk Per Trade (%)", minval=0.1, step=0.1)
+sl_ticks     = input.int(300, "Stop Loss Distance (Ticks)")
+tp_ticks     = input.int(600, "Take Profit Distance (Ticks)")
+
+// --- POSITION SIZING LOGIC ---
+// This calculates the exact lot size based on account equity and risk
+risk_amount = strategy.equity * (risk_percent / 100)
+point_value = syminfo.mintick
+contract_size = risk_amount / (sl_ticks * point_value)
+
+// --- TRADE EXECUTION ---
+// Using a basic EMA Cross as a placeholder for the client's actual logic
+long_trigger = ta.crossover(ta.ema(close, 9), ta.ema(close, 21))
+
+if long_trigger and strategy.position_size == 0
+    strategy.entry("Long_Entry", strategy.long, qty=contract_size, comment="Risk Managed Entry")
+
+// --- EXIT WITH PROTECTION ---
+// Implementing both hard SL/TP and Trailing logic
+if strategy.position_size > 0
+    strategy.exit("Exit_Logic", "Long_Entry", loss=sl_ticks, profit=tp_ticks, trail_points=150, trail_offset=50, comment_loss="SL Hit", comment_profit="TP Hit")
+
+plotshape(long_trigger, title="Entry Signal", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
